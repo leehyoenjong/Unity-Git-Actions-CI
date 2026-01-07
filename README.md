@@ -10,6 +10,21 @@ Unity 빌드 및 스토어 배포를 위한 재사용 가능한 GitHub Actions �
 
 ---
 
+## 빠른 설치 (권장)
+
+Unity 프로젝트 폴더에서 아래 명령어 실행:
+
+```bash
+curl -s https://raw.githubusercontent.com/leehyoenjong/Unity-Git-Actions-CI/main/install.sh | bash
+```
+
+**설치 후:**
+1. `.github/workflows/ios-testflight.yml` 파일 열기
+2. `TODO` 표시된 값들을 프로젝트에 맞게 수정
+3. GitHub Secrets 설정 (아래 Step 4 참고)
+
+---
+
 ## iOS TestFlight 배포
 
 ### 개요

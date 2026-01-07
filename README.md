@@ -83,14 +83,14 @@ jobs:
 | `xcode_version` | X | `15.4` | Xcode 버전 | [GitHub Actions Runner Images](https://github.com/actions/runner-images/blob/main/images/macos/macos-14-Readme.md) 참고 |
 | `version` | X | `0.0.1` | 앱 버전 | 수동 실행 시 입력 또는 태그에서 추출 |
 
-**예시 (NOC 프로젝트):**
+**예시 (이름 프로젝트:**
 
 ```yaml
 with:
   unity_version: "6000.3.2f1"           # Unity 6000.3.2f1 사용
-  bundle_id: "com.STUCKPIXEL.NOC"       # 번들 ID
-  profile_name: "NOC_AppStore_Profile"  # 프로비저닝 프로파일 이름
-  build_name: "NOC"                     # 출력될 IPA 이름
+  bundle_id: "com.회사.프로젝트이름"       # 번들 ID
+  profile_name: "예시"  # 프로비저닝 프로파일 이름
+  build_name: "예시"                     # 출력될 IPA 이름
   xcode_version: "15.4"                 # Xcode 15.4 사용
   version: ${{ github.event.inputs.version }}
 ```

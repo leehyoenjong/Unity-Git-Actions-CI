@@ -38,131 +38,84 @@ Unity 빌드 및 스토어 배포를 위한 재사용 가능한 GitHub Actions �
 이 워크플로우는 Unity 프로젝트를 iOS로 빌드하고 TestFlight에 자동 배포합니다.
 
 ```
-[Unity 프로젝트] → [Xcode 프로젝트 생성] → [IPA 빌드] → [TestFlight 업로드]
+[Unity 프로젝트] → [Xcode 프로젝트 생성] → [CocoaPods 설치] → [IPA 빌드] → [TestFlight 업로드]
 ```
+
+### 주요 특징
+- CocoaPods 자동 설치 지원
+- UnityFramework 자동 서명 처리
+- 디버그 로그 출력
 
 ---
 
 ## 설정 방법 (Step by Step)
 
-### Step 1: 프로젝트에 워크플로우 파일 생성
+### Step 1: 빠른 설치 실행
 
-프로젝트 루트에 `.github/workflows/ios-testflight.yml` 파일을 생성합니다.
+터미널에서 Unity 프로젝트 폴더로 이동 후:
 
-```
-your-unity-project/
-├── .github/
-│   └── workflows/
-│       └── ios-testflight.yml   ← 이 파일 생성
-├── Assets/
-├── Packages/
-├── ProjectSettings/
-└── ...
+```bash
+curl -s https://raw.githubusercontent.com/leehyoenjong/Unity-Git-Actions-CI/main/install.sh | bash
 ```
 
-**파일 내용:**
-
-```yaml
-name: iOS Build & TestFlight
-
-on:
-  push:
-    tags:
-      - 'v*'
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Build version (e.g., 1.0.0)'
-        required: false
-        default: ''
-
-jobs:
-  ios:
-    uses: leehyoenjong/Unity-Git-Actions-CI/.github/workflows/ios-testflight.yml@main
-    with:
-      unity_version: "6000.3.2f1"
-      bundle_id: "com.yourcompany.yourapp"
-      profile_name: "YourApp_AppStore_Profile"
-      build_name: "YourApp"
-      xcode_version: "15.4"
-      version: ${{ github.event.inputs.version }}
-    secrets: inherit
-```
-
----
-
-### Step 2: 입력 파라미터 값 설정
-
-`with:` 블록의 각 값을 프로젝트에 맞게 수정합니다.
-
-| 파라미터 | 필수 | 기본값 | 설명 | 값 확인 방법 |
-|---------|:----:|--------|------|-------------|
-| `unity_version` | O | - | Unity 버전 | Unity Hub → 프로젝트 버전 확인 |
-| `bundle_id` | O | - | iOS 번들 ID | Unity → Project Settings → Player → iOS → Other Settings → Bundle Identifier |
-| `profile_name` | O | - | 프로비저닝 프로파일 이름 | Apple Developer → Certificates, Identifiers & Profiles → Profiles |
-| `build_name` | X | `App` | 빌드 출력 이름 | 원하는 앱 이름 |
-| `xcode_version` | X | `15.4` | Xcode 버전 | [GitHub Actions Runner Images](https://github.com/actions/runner-images/blob/main/images/macos/macos-14-Readme.md) 참고 |
-| `version` | X | `0.0.1` | 앱 버전 | 수동 실행 시 입력 또는 태그에서 추출 |
-
-**예시 (이름 프로젝트:**
-
-```yaml
-with:
-  unity_version: "6000.3.2f1"           # Unity 6000.3.2f1 사용
-  bundle_id: "com.회사.프로젝트이름"       # 번들 ID
-  profile_name: "예시"  # 프로비저닝 프로파일 이름
-  build_name: "예시"                     # 출력될 IPA 이름
-  xcode_version: "15.4"                 # Xcode 15.4 사용
-  version: ${{ github.event.inputs.version }}
-```
-
----
-
-### Step 3: Fastlane 파일 복사
-
-이 리포지토리의 `fastlane/` 폴더와 `Gemfile`을 프로젝트 루트에 복사합니다.
-
-```
-your-unity-project/
-├── .github/workflows/ios-testflight.yml
-├── fastlane/                    ← 복사
-│   └── Fastfile
-├── Gemfile                      ← 복사
-├── Assets/
-└── ...
-```
-
-**복사할 파일:**
+이 명령어는 다음 파일들을 자동으로 생성합니다:
+- `.github/workflows/ios-testflight.yml`
 - `fastlane/Fastfile`
 - `Gemfile`
 
 ---
 
-### Step 4: GitHub Secrets 설정
+### Step 2: 입력 파라미터 값 설정
+
+`.github/workflows/ios-testflight.yml` 파일을 열고 `TODO` 표시된 값들을 수정합니다.
+
+| 파라미터 | 필수 | 기본값 | 설명 | 값 확인 방법 |
+|---------|:----:|--------|------|-------------|
+| `unity_version` | O | - | Unity 버전 | Unity Hub → 프로젝트 버전 확인 |
+| `bundle_id` | O | - | iOS 번들 ID | Unity → Project Settings → Player → iOS → Bundle Identifier |
+| `profile_name` | O | - | 프로비저닝 프로파일 이름 | Apple Developer → Profiles |
+| `build_name` | O | `App` | 빌드 출력 이름 | 원하는 앱 이름 |
+| `xcode_version` | X | `16.4` | Xcode 버전 | [GitHub Runner Images](https://github.com/actions/runner-images) 참고 |
+| `version` | X | `0.0.1` | 앱 버전 | 수동 실행 시 입력 또는 태그에서 추출 |
+
+**예시:**
+
+```yaml
+with:
+  unity_version: "6000.3.2f1"
+  bundle_id: "com.STUCKPIXEL.NOC"
+  profile_name: "NOC_AppStore_Profile"
+  build_name: "NOC"
+  xcode_version: "16.4"
+  version: ${{ github.event.inputs.version }}
+```
+
+---
+
+### Step 3: GitHub Secrets 설정
 
 GitHub 리포지토리에서 Secrets를 설정합니다.
 
 **경로:** Repository → Settings → Secrets and variables → Actions → New repository secret
 
-#### 4.1 Unity 라이선스 관련
+#### 3.1 Unity 라이선스 관련
 
 | Secret 이름 | 값 | 얻는 방법 |
 |------------|-----|----------|
 | `UNITY_EMAIL` | Unity 계정 이메일 | Unity 로그인 이메일 |
 | `UNITY_PASSWORD` | Unity 계정 비밀번호 | Unity 로그인 비밀번호 |
-| `UNITY_LICENSE` | Unity 라이선스 내용 | 아래 "Unity 라이선스 얻기" 참고 |
+| `UNITY_LICENSE` | Unity 라이선스 내용 | 아래 참고 |
 
 **Unity 라이선스 얻기:**
 ```bash
-# 로컬에서 Unity 라이선스 파일 위치
-# macOS: /Library/Application Support/Unity/Unity_lic.ulf
-# Windows: C:\ProgramData\Unity\Unity_lic.ulf
-
-# 파일 내용을 복사하여 UNITY_LICENSE에 붙여넣기
+# macOS
 cat "/Library/Application Support/Unity/Unity_lic.ulf"
+
+# Windows
+type "C:\ProgramData\Unity\Unity_lic.ulf"
 ```
 
-#### 4.2 iOS 인증서 관련
+#### 3.2 iOS 인증서 관련
 
 | Secret 이름 | 값 | 얻는 방법 |
 |------------|-----|----------|
@@ -175,14 +128,12 @@ cat "/Library/Application Support/Unity/Unity_lic.ulf"
 ```bash
 # .p12 인증서 변환
 base64 -i Certificates.p12 | pbcopy
-# 클립보드에 복사됨 → IOS_CERTIFICATE_BASE64에 붙여넣기
 
 # 프로비저닝 프로파일 변환
 base64 -i YourApp.mobileprovision | pbcopy
-# 클립보드에 복사됨 → IOS_PROVISION_PROFILE_BASE64에 붙여넣기
 ```
 
-#### 4.3 App Store Connect API 관련
+#### 3.3 App Store Connect API 관련
 
 | Secret 이름 | 값 | 얻는 방법 |
 |------------|-----|----------|
@@ -204,12 +155,11 @@ base64 -i YourApp.mobileprovision | pbcopy
 # .p8 파일 내용 확인
 cat AuthKey_XXXXXXXXXX.p8
 # 출력된 내용 전체를 APPSTORE_PRIVATE_KEY에 붙여넣기
-# (-----BEGIN PRIVATE KEY----- 부터 -----END PRIVATE KEY----- 까지)
 ```
 
 ---
 
-### Step 5: 빌드 실행
+### Step 4: 빌드 실행
 
 #### 방법 1: 태그 푸시 (자동 실행)
 ```bash
@@ -247,7 +197,7 @@ git push origin v1.0.0
 
 ### Unity 라이선스 오류
 - `UNITY_LICENSE` 값이 올바른지 확인
-- Professional 라이선스가 필요한 경우 game-ci 문서 참고
+- Professional 라이선스가 필요한 경우 [game-ci 문서](https://game.ci/docs/github/activation) 참고
 
 ### 코드 사이닝 오류
 - `profile_name`이 실제 프로비저닝 프로파일 이름과 일치하는지 확인
@@ -255,7 +205,11 @@ git push origin v1.0.0
 - Bundle ID가 프로비저닝 프로파일과 일치하는지 확인
 
 ### Xcode 버전 오류
-- [GitHub Actions Runner Images](https://github.com/actions/runner-images/blob/main/images/macos/macos-14-Readme.md)에서 사용 가능한 Xcode 버전 확인
+- [GitHub Actions Runner Images](https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md)에서 사용 가능한 Xcode 버전 확인
+
+### CocoaPods 오류
+- `Podfile`이 Unity 빌드 출력에 포함되어 있는지 확인
+- 빌드 경로가 `build/iOS/{build_name}/` 형식인지 확인
 
 ---
 

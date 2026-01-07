@@ -63,7 +63,6 @@ platform :ios do
       output_directory: "build/output",
       output_name: "#{build_name}.ipa",
       export_method: "app-store",
-      xcargs: "-jobs 8 -parallelizeTargets",
       export_options: {
         provisioningProfiles: {
           bundle_id => profile_name
@@ -115,7 +114,6 @@ platform :ios do
       output_directory: "build/output",
       output_name: "#{build_name}.ipa",
       export_method: "app-store",
-      xcargs: "-jobs 8 -parallelizeTargets",
       export_options: {
         provisioningProfiles: {
           bundle_id => profile_name

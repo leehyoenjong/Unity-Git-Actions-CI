@@ -96,10 +96,18 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Library
-          key: Library-iOS-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-iOS-${{ hashFiles('Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
           restore-keys: |
             Library-iOS-
             Library-
+
+      - name: Cache IL2CPP
+        uses: actions/cache@v4
+        with:
+          path: Library/Il2cppBuildCache
+          key: il2cpp-iOS-${{ hashFiles('Assets/**/*.cs', 'Packages/**/*.cs') }}
+          restore-keys: |
+            il2cpp-iOS-
 
       - name: Build Unity iOS
         uses: game-ci/unity-builder@v4
@@ -120,6 +128,7 @@ jobs:
           name: ios-xcode-project
           path: build/iOS
           retention-days: 1
+          compression-level: 6
 
   # ============================================
   # Job 2: Xcode 빌드 + TestFlight 배포 (macOS)

@@ -17,8 +17,9 @@ platform :ios do
       in_house: false
     )
 
-    # Xcode 프로젝트 경로
-    xcode_project = "build/iOS/Unity-iPhone.xcodeproj"
+    # Xcode 워크스페이스 경로 (CocoaPods 사용)
+    xcode_workspace = "build/iOS/#{build_name}/Unity-iPhone.xcworkspace"
+    xcode_project = "build/iOS/#{build_name}/Unity-iPhone.xcodeproj"
 
     # 빌드 번호 증가 (TestFlight 업로드 시 필수)
     increment_build_number(
@@ -34,19 +35,28 @@ platform :ios do
       )
     end
 
-    # 코드 사이닝 설정 업데이트
+    # 코드 사이닝 설정 업데이트 (Unity-iPhone 타겟만)
     update_code_signing_settings(
       path: xcode_project,
       use_automatic_signing: false,
       team_id: ENV["APPLE_TEAM_ID"],
       bundle_identifier: bundle_id,
       code_sign_identity: "Apple Distribution",
-      profile_name: profile_name
+      profile_name: profile_name,
+      targets: ["Unity-iPhone"]  # UnityFramework 제외
     )
 
-    # Archive 생성
+    # UnityFramework는 Automatic signing 사용
+    update_code_signing_settings(
+      path: xcode_project,
+      use_automatic_signing: true,
+      team_id: ENV["APPLE_TEAM_ID"],
+      targets: ["UnityFramework"]
+    )
+
+    # Archive 생성 (xcworkspace 사용 - CocoaPods)
     build_app(
-      project: xcode_project,
+      workspace: xcode_workspace,
       scheme: "Unity-iPhone",
       configuration: "Release",
       clean: true,
@@ -76,7 +86,8 @@ platform :ios do
     profile_name = ENV["PROFILE_NAME"] || "AppStore_Profile"
     build_name = ENV["BUILD_NAME"] || "App"
 
-    xcode_project = "build/iOS/Unity-iPhone.xcodeproj"
+    xcode_workspace = "build/iOS/#{build_name}/Unity-iPhone.xcworkspace"
+    xcode_project = "build/iOS/#{build_name}/Unity-iPhone.xcodeproj"
 
     update_code_signing_settings(
       path: xcode_project,
@@ -84,11 +95,19 @@ platform :ios do
       team_id: ENV["APPLE_TEAM_ID"],
       bundle_identifier: bundle_id,
       code_sign_identity: "Apple Distribution",
-      profile_name: profile_name
+      profile_name: profile_name,
+      targets: ["Unity-iPhone"]
+    )
+
+    update_code_signing_settings(
+      path: xcode_project,
+      use_automatic_signing: true,
+      team_id: ENV["APPLE_TEAM_ID"],
+      targets: ["UnityFramework"]
     )
 
     build_app(
-      project: xcode_project,
+      workspace: xcode_workspace,
       scheme: "Unity-iPhone",
       configuration: "Release",
       clean: true,

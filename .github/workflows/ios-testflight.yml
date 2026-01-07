@@ -21,10 +21,10 @@ on:
         type: string
         default: 'App'
       xcode_version:
-        description: 'Xcode version (e.g., 15.4)'
+        description: 'Xcode version (e.g., 16.4)'
         required: false
         type: string
-        default: '15.4'
+        default: '16.4'
       version:
         description: 'Build version (e.g., 1.0.0)'
         required: false
@@ -181,6 +181,28 @@ jobs:
       - name: Select Xcode version
         run: |
           sudo xcode-select -s /Applications/Xcode_${{ inputs.xcode_version }}.app/Contents/Developer
+
+      - name: Debug - List build directory
+        run: |
+          echo "=== Build directory structure ==="
+          ls -la build/
+          echo "=== iOS directory structure ==="
+          ls -la build/iOS/ || echo "build/iOS not found"
+          echo "=== Find xcodeproj ==="
+          find build/ -name "*.xcodeproj" -type d 2>/dev/null || echo "No xcodeproj found"
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: build/iOS/${{ inputs.build_name }}/Pods
+          key: pods-${{ hashFiles(format('build/iOS/{0}/Podfile.lock', inputs.build_name)) }}
+          restore-keys: |
+            pods-
+
+      - name: Install CocoaPods
+        run: |
+          cd build/iOS/${{ inputs.build_name }}
+          pod install
 
       - name: Build and upload to TestFlight
         env:

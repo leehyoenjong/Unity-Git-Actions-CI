@@ -48,7 +48,7 @@ jobs:
       bundle_id: "com.company.app"       # TODO: 번들 ID 수정
       profile_name: "App_AppStore"       # TODO: 프로비저닝 프로파일 이름 수정
       build_name: "App"                  # TODO: 빌드 이름 수정
-      xcode_version: "15.4"
+      xcode_version: "16.4"              # TODO: Xcode 버전 수정
       version: ${{ github.event.inputs.version }}
     secrets: inherit
 EOF

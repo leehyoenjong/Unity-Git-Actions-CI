@@ -222,10 +222,11 @@ git push origin v1.0.0
 
 ### 적용된 최적화
 
-#### 1. IL2CPP 빌드 캐싱
+#### 1차: 워크플로우 캐싱 최적화
 
-Unity IL2CPP 빌드 결과물을 캐싱하여 재빌드 시 시간을 단축합니다.
+Unity 빌드 캐싱과 Artifact 전송을 최적화합니다.
 
+**IL2CPP 빌드 캐싱**
 ```yaml
 - name: Cache IL2CPP
   uses: actions/cache@v4
@@ -234,44 +235,28 @@ Unity IL2CPP 빌드 결과물을 캐싱하여 재빌드 시 시간을 단축합�
     key: il2cpp-iOS-${{ hashFiles('Assets/**/*.cs', 'Packages/**/*.cs') }}
 ```
 
-<!-- IL2CPP 캐싱 적용 결과 스크린샷 -->
-
----
-
-#### 2. Library 캐시 키 최적화
-
-캐시 키를 핵심 파일만 해시하도록 변경하여 캐시 히트율을 높입니다.
-
-**Before:**
+**Library 캐시 키 최적화**
 ```yaml
+# Before
 key: Library-iOS-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-```
 
-**After:**
-```yaml
+# After
 key: Library-iOS-${{ hashFiles('Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
 ```
 
-<!-- 캐시 키 최적화 적용 결과 스크린샷 -->
-
----
-
-#### 3. Artifact 압축 최적화
-
-Xcode 프로젝트 업로드 시 압축률을 조정하여 전송 시간을 단축합니다.
-
+**Artifact 압축 최적화**
 ```yaml
 - name: Upload Xcode project
   uses: actions/upload-artifact@v4
   with:
-    compression-level: 6  # 0-9 (기본값: 6)
+    compression-level: 6
 ```
 
-<!-- Artifact 압축 최적화 적용 결과 스크린샷 -->
+<!-- 1차 최적화 적용 결과 스크린샷 -->
 
 ---
 
-#### 4. Xcode 병렬 빌드
+#### 2차: Xcode 병렬 빌드
 
 Fastlane에서 Xcode 빌드 시 병렬 컴파일을 활성화합니다.
 
@@ -282,19 +267,17 @@ build_app(
 )
 ```
 
-<!-- Xcode 병렬 빌드 적용 결과 스크린샷 -->
+<!-- 2차 최적화 적용 결과 스크린샷 -->
 
 ---
 
 ### 최적화 결과 요약
 
-| 최적화 항목 | 적용 전 | 적용 후 | 단축 시간 |
-|------------|--------|--------|----------|
-| IL2CPP 캐싱 | - | - | - |
-| 캐시 키 최적화 | - | - | - |
-| Artifact 압축 | - | - | - |
-| 병렬 빌드 | - | - | - |
-| **총합** | **-** | **-** | **-** |
+| 차수 | 최적화 내용 | 적용 전 | 적용 후 | 단축 시간 |
+|:---:|------------|--------|--------|----------|
+| 1차 | 워크플로우 캐싱 최적화 | 40~50분 | - | - |
+| 2차 | Xcode 병렬 빌드 | - | - | - |
+| | **총합** | **40~50분** | **-** | **-** |
 
 <!-- 최종 결과 비교 스크린샷 -->
 

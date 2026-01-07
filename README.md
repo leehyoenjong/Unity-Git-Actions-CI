@@ -223,8 +223,7 @@ git push origin v1.0.0
 ### 최적화 전 (40~50분)
 
 최적화 적용 전 빌드 시간입니다.
-
-<!-- 최적화 전 빌드 결과 스크린샷 -->
+<img width="1278" height="152" alt="image" src="https://github.com/user-attachments/assets/91bfa359-dc2c-482d-9bf2-2be152eae98f" />
 
 ---
 

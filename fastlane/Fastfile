@@ -1,0 +1,105 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and upload to TestFlight"
+  lane :release do
+    # 환경 변수에서 설정 읽기
+    bundle_id = ENV["BUNDLE_ID"] || "com.example.app"
+    profile_name = ENV["PROFILE_NAME"] || "AppStore_Profile"
+    build_name = ENV["BUILD_NAME"] || "App"
+
+    # App Store Connect API 키 설정
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APPSTORE_KEY_ID"],
+      issuer_id: ENV["APPSTORE_ISSUER_ID"],
+      key_content: ENV["APPSTORE_PRIVATE_KEY"],
+      is_key_content_base64: false,
+      in_house: false
+    )
+
+    # Xcode 프로젝트 경로
+    xcode_project = "build/iOS/Unity-iPhone.xcodeproj"
+
+    # 빌드 번호 증가 (TestFlight 업로드 시 필수)
+    increment_build_number(
+      xcodeproj: xcode_project,
+      build_number: ENV["GITHUB_RUN_NUMBER"] || Time.now.to_i.to_s
+    )
+
+    # 버전 설정
+    if ENV["BUILD_VERSION"] && !ENV["BUILD_VERSION"].empty?
+      increment_version_number(
+        xcodeproj: xcode_project,
+        version_number: ENV["BUILD_VERSION"]
+      )
+    end
+
+    # 코드 사이닝 설정 업데이트
+    update_code_signing_settings(
+      path: xcode_project,
+      use_automatic_signing: false,
+      team_id: ENV["APPLE_TEAM_ID"],
+      bundle_identifier: bundle_id,
+      code_sign_identity: "Apple Distribution",
+      profile_name: profile_name
+    )
+
+    # Archive 생성
+    build_app(
+      project: xcode_project,
+      scheme: "Unity-iPhone",
+      configuration: "Release",
+      clean: true,
+      output_directory: "build/output",
+      output_name: "#{build_name}.ipa",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          bundle_id => profile_name
+        }
+      }
+    )
+
+    # TestFlight에 업로드
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true,
+      skip_submission: true
+    )
+
+    UI.success("Successfully uploaded to TestFlight!")
+  end
+
+  desc "Build only (no upload)"
+  lane :build_only do
+    bundle_id = ENV["BUNDLE_ID"] || "com.example.app"
+    profile_name = ENV["PROFILE_NAME"] || "AppStore_Profile"
+    build_name = ENV["BUILD_NAME"] || "App"
+
+    xcode_project = "build/iOS/Unity-iPhone.xcodeproj"
+
+    update_code_signing_settings(
+      path: xcode_project,
+      use_automatic_signing: false,
+      team_id: ENV["APPLE_TEAM_ID"],
+      bundle_identifier: bundle_id,
+      code_sign_identity: "Apple Distribution",
+      profile_name: profile_name
+    )
+
+    build_app(
+      project: xcode_project,
+      scheme: "Unity-iPhone",
+      configuration: "Release",
+      clean: true,
+      output_directory: "build/output",
+      output_name: "#{build_name}.ipa",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          bundle_id => profile_name
+        }
+      }
+    )
+  end
+end

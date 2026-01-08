@@ -290,6 +290,39 @@ build_app(
 
 ---
 
+### 캐시 정책
+
+#### 비활성화된 캐시
+
+다음 캐시들은 **빌드 안정성을 위해 비활성화**되어 있습니다:
+
+| 캐시 | 비활성화 이유 |
+|------|-------------|
+| Unity Library | 에셋 참조 손상 가능 (PPtr cast failed 에러) |
+| IL2CPP Build Cache | Unity 빌드와 연관된 캐시 손상 위험 |
+
+**발생할 수 있는 오류:**
+
+<!-- TODO: PPtr 에러 스크린샷 추가 -->
+
+```
+PPtr cast failed when dereferencing! Casting from Mesh to MonoScript at FileID -2597519522473998463!
+```
+
+이 에러는 캐시된 Library 폴더와 현재 프로젝트 에셋 간의 불일치로 발생합니다. CI 환경에서는 에셋 변경 시 캐시가 자동으로 갱신되지 않아 참조가 깨질 수 있습니다.
+
+#### 활성화된 캐시
+
+다음 캐시들은 **안전하게 사용** 가능합니다:
+
+| 캐시 | 설명 |
+|------|------|
+| CocoaPods (Pods) | iOS 의존성 라이브러리 |
+| CocoaPods repos | CocoaPods 스펙 저장소 |
+| Ruby Bundler | Fastlane 등 Ruby 의존성 |
+
+---
+
 ### 캐시 문제 해결
 
 캐시 관련 빌드 문제 발생 시:

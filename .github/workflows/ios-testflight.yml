@@ -92,22 +92,8 @@ jobs:
             echo "version=0.0.1" >> $GITHUB_OUTPUT
           fi
 
-      - name: Cache Library
-        uses: actions/cache@v4
-        with:
-          path: Library
-          key: Library-iOS-${{ hashFiles('Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
-          restore-keys: |
-            Library-iOS-
-            Library-
-
-      - name: Cache IL2CPP
-        uses: actions/cache@v4
-        with:
-          path: Library/Il2cppBuildCache
-          key: il2cpp-iOS-${{ hashFiles('Assets/**/*.cs', 'Packages/**/*.cs') }}
-          restore-keys: |
-            il2cpp-iOS-
+      # Unity Library/IL2CPP cache disabled for build stability
+      # Only CocoaPods and Ruby Bundler are cached
 
       - name: Build Unity iOS
         uses: game-ci/unity-builder@v4
@@ -203,7 +189,9 @@ jobs:
       - name: Cache CocoaPods
         uses: actions/cache@v4
         with:
-          path: build/iOS/${{ inputs.build_name }}/Pods
+          path: |
+            build/iOS/${{ inputs.build_name }}/Pods
+            ~/.cocoapods/repos
           key: pods-${{ hashFiles(format('build/iOS/{0}/Podfile.lock', inputs.build_name)) }}
           restore-keys: |
             pods-

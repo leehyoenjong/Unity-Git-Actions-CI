@@ -259,7 +259,8 @@ key: Library-iOS-${{ hashFiles('Packages/manifest.json', 'ProjectSettings/Projec
     compression-level: 6
 ```
 
-<!-- 1차 최적화 적용 결과 스크린샷 -->
+<img width="657" height="192" alt="image" src="https://github.com/user-attachments/assets/5966b2d7-d6df-48b8-acc7-4d03b03483dd" />
+
 
 ---
 

@@ -223,7 +223,7 @@ git push origin v1.0.0
 ### 최적화 전 (40~50분)
 
 최적화 적용 전 빌드 시간입니다.
-<img width="1278" height="152" alt="image" src="https://github.com/user-attachments/assets/91bfa359-dc2c-482d-9bf2-2be152eae98f" />
+<img width="623" height="189" alt="image" src="https://github.com/user-attachments/assets/cf25f638-860a-44d7-8b8e-f9ebdaaf74c3" />
 
 ---
 
@@ -258,9 +258,7 @@ key: Library-iOS-${{ hashFiles('Packages/manifest.json', 'ProjectSettings/Projec
   with:
     compression-level: 6
 ```
-
-<img width="657" height="192" alt="image" src="https://github.com/user-attachments/assets/5966b2d7-d6df-48b8-acc7-4d03b03483dd" />
-
+<img width="618" height="170" alt="image" src="https://github.com/user-attachments/assets/c25bc7b3-febb-44fc-b20e-8ba6d473ed6c" />
 
 ---
 

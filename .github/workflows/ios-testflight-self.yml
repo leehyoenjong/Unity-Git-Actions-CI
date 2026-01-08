@@ -1,0 +1,92 @@
+name: iOS Build & TestFlight (Self-hosted)
+
+on:
+  workflow_call:
+    inputs:
+      unity_path:
+        description: 'Unity Editor path (e.g., /Applications/Unity/Hub/Editor/6000.3.2f1/Unity.app/Contents/MacOS/Unity)'
+        required: true
+        type: string
+      bundle_id:
+        description: 'iOS Bundle Identifier'
+        required: true
+        type: string
+      profile_name:
+        description: 'Provisioning Profile name'
+        required: true
+        type: string
+      build_name:
+        description: 'Build output name'
+        required: false
+        type: string
+        default: 'App'
+      version:
+        description: 'Build version (e.g., 1.0.0)'
+        required: false
+        type: string
+        default: ''
+    secrets:
+      APPSTORE_ISSUER_ID:
+        required: true
+      APPSTORE_KEY_ID:
+        required: true
+      APPSTORE_PRIVATE_KEY:
+        required: true
+      APPLE_TEAM_ID:
+        required: true
+
+jobs:
+  build:
+    name: Unity & Xcode Build
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=0.0.1" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Unity iOS
+        run: |
+          "${{ inputs.unity_path }}" \
+            -batchmode \
+            -nographics \
+            -quit \
+            -projectPath "${{ github.workspace }}" \
+            -buildTarget iOS \
+            -executeMethod UnityBuilderAction.Builder.BuildProject \
+            -buildPath "build/iOS" \
+            -buildName "${{ inputs.build_name }}" \
+            -version "${{ steps.version.outputs.version }}" \
+            -logFile -
+
+      - name: Install CocoaPods
+        run: |
+          cd build/iOS/${{ inputs.build_name }}
+          pod install
+
+      - name: Build and upload to TestFlight
+        env:
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          BUILD_VERSION: ${{ steps.version.outputs.version }}
+          BUNDLE_ID: ${{ inputs.bundle_id }}
+          PROFILE_NAME: ${{ inputs.profile_name }}
+          BUILD_NAME: ${{ inputs.build_name }}
+        run: |
+          cd ${{ github.workspace }}
+          fastlane ios release

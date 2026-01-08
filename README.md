@@ -262,7 +262,25 @@ key: Library-iOS-${{ hashFiles('Packages/manifest.json', 'ProjectSettings/Projec
 
 ---
 
-#### 2차: Xcode 병렬 빌드
+#### 2차: CocoaPods 캐싱
+
+CocoaPods 의존성과 스펙 저장소를 캐싱하여 `pod install` 시간을 단축합니다.
+
+```yaml
+- name: Cache CocoaPods
+  uses: actions/cache@v4
+  with:
+    path: |
+      build/iOS/${{ inputs.build_name }}/Pods
+      ~/.cocoapods/repos
+    key: pods-${{ hashFiles(format('build/iOS/{0}/Podfile.lock', inputs.build_name)) }}
+```
+
+<!-- 2차 최적화 적용 결과 스크린샷 -->
+
+---
+
+#### 3차: Xcode 병렬 빌드
 
 Fastlane에서 Xcode 빌드 시 병렬 컴파일을 활성화합니다.
 
@@ -273,17 +291,19 @@ build_app(
 )
 ```
 
-<!-- 2차 최적화 적용 결과 스크린샷 -->
+<!-- 3차 최적화 적용 결과 스크린샷 -->
 
 ---
 
 ### 최적화 결과 요약
 
-| 차수 | 최적화 내용 | 적용 전 | 적용 후 | 단축 시간 |
-|:---:|------------|--------|--------|----------|
-| 1차 | 워크플로우 캐싱 최적화 | 40~50분 | - | - |
-| 2차 | Xcode 병렬 빌드 | - | - | - |
-| | **총합** | **40~50분** | **-** | **-** |
+| 차수 | 최적화 내용 | 적용 전 | 적용 후 | 비고 |
+|:---:|------------|--------|--------|------|
+| 1차 | Unity Library/IL2CPP 캐싱 | 40~50분 | 40분 초반 | ⚠️ 에러로 인해 비활성화 |
+| 2차 | CocoaPods 캐싱 | - | - | ✅ 활성화 |
+| 3차 | Xcode 병렬 빌드 | - | - | ✅ 활성화 |
+
+> **참고:** 1차 캐싱 최적화는 PPtr cast failed 에러로 인해 현재 비활성화되어 있습니다. 자세한 내용은 [캐시 정책](#캐시-정책)을 참고하세요.
 
 <!-- 최종 결과 비교 스크린샷 -->
 

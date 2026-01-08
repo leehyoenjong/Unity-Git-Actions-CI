@@ -303,7 +303,8 @@ build_app(
 
 **발생할 수 있는 오류:**
 
-<!-- TODO: PPtr 에러 스크린샷 추가 -->
+<img width="1152" height="178" alt="image" src="https://github.com/user-attachments/assets/23075f9f-84bc-47f4-a4a2-9758c1fbef39" />
+
 
 ```
 PPtr cast failed when dereferencing! Casting from Mesh to MonoScript at FileID -2597519522473998463!

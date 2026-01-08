@@ -355,6 +355,183 @@ PPtr cast failed when dereferencing! Casting from Mesh to MonoScript at FileID -
 
 ---
 
+## Self-hosted Runner (선택)
+
+### Self-hosted Runner란?
+
+GitHub Actions는 기본적으로 GitHub에서 제공하는 클라우드 서버(GitHub-hosted runner)에서 실행됩니다. **Self-hosted runner**는 자신의 맥북이나 서버에서 빌드를 실행하는 방식입니다.
+
+### 왜 Self-hosted를 사용하나요?
+
+| 항목 | GitHub-hosted | Self-hosted |
+|------|---------------|-------------|
+| **비용** | 유료 (분당 과금) | 무료 |
+| **무료 한도** | Private repo: 2,000분/월 | 무제한 |
+| **빌드 속도** | 보통 | 빠름 (로컬 캐시) |
+| **Unity 라이선스** | 매번 활성화 필요 | 한 번만 활성화 |
+| **설정 복잡도** | 간단 | 초기 설정 필요 |
+| **가용성** | 24/7 | 맥북이 켜져 있어야 함 |
+
+**추천 상황:**
+- Private 저장소에서 빌드 비용을 줄이고 싶을 때
+- 빌드를 자주 실행해서 무료 한도를 초과할 때
+- 더 빠른 빌드 속도가 필요할 때
+
+---
+
+### Self-hosted 사전 요구사항
+
+Self-hosted runner를 사용하려면 맥북에 다음이 설치되어 있어야 합니다:
+
+| 소프트웨어 | 용도 | 확인 방법 |
+|-----------|------|----------|
+| Unity | Unity 빌드 | Unity Hub 실행 |
+| Xcode | iOS 빌드 | `xcode-select -p` |
+| Fastlane | 배포 자동화 | `fastlane --version` |
+| CocoaPods | iOS 의존성 | `pod --version` |
+| 인증서 | 코드 서명 | Keychain Access 앱 |
+| 프로비저닝 프로파일 | 앱 배포 | `~/Library/MobileDevice/Provisioning Profiles/` |
+
+> **참고:** 이미 맥북에서 Unity iOS 빌드를 수동으로 성공한 적이 있다면, 위 항목들은 모두 설치되어 있습니다.
+
+---
+
+### Self-hosted Runner 설정 방법
+
+#### Step 1: GitHub에서 Runner 등록
+
+1. GitHub Repository로 이동
+2. **Settings** → **Actions** → **Runners** 클릭
+3. **New self-hosted runner** 버튼 클릭
+4. **macOS** 선택
+5. 표시되는 토큰을 복사해둡니다
+
+#### Step 2: 맥북에서 Runner 설치
+
+터미널을 열고 다음 명령어를 실행합니다:
+
+```bash
+# 1. 작업 폴더 생성
+mkdir -p ~/actions-runner && cd ~/actions-runner
+
+# 2. Runner 다운로드 (GitHub 페이지에서 최신 버전 확인)
+# Apple Silicon (M1/M2/M3)
+curl -o actions-runner-osx-arm64-2.321.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.321.0/actions-runner-osx-arm64-2.321.0.tar.gz
+
+# Intel Mac
+curl -o actions-runner-osx-x64-2.321.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.321.0/actions-runner-osx-x64-2.321.0.tar.gz
+
+# 3. 압축 해제
+tar xzf ./actions-runner-osx-*.tar.gz
+
+# 4. Runner 설정 (GitHub에서 복사한 토큰 사용)
+./config.sh --url https://github.com/YOUR_USERNAME/YOUR_REPO --token YOUR_TOKEN
+
+# 5. Runner 실행
+./run.sh
+```
+
+#### Step 3: Runner를 백그라운드 서비스로 등록 (선택)
+
+맥북을 재시작해도 자동으로 Runner가 실행되도록 설정합니다:
+
+```bash
+# 서비스 설치
+sudo ./svc.sh install
+
+# 서비스 시작
+sudo ./svc.sh start
+
+# 서비스 상태 확인
+sudo ./svc.sh status
+
+# 서비스 중지 (필요시)
+sudo ./svc.sh stop
+
+# 서비스 제거 (필요시)
+sudo ./svc.sh uninstall
+```
+
+#### Step 4: Runner 상태 확인
+
+GitHub Repository → **Settings** → **Actions** → **Runners**에서 Runner가 **Idle** 상태로 표시되면 성공입니다.
+
+---
+
+### Self-hosted 워크플로우 사용
+
+Self-hosted runner용 워크플로우는 `ios-testflight-self.yml`입니다.
+
+#### 필요한 Secrets (4개만)
+
+| Secret | 설명 |
+|--------|------|
+| `APPSTORE_ISSUER_ID` | App Store Connect API Issuer ID |
+| `APPSTORE_KEY_ID` | App Store Connect API Key ID |
+| `APPSTORE_PRIVATE_KEY` | App Store Connect API 키 (.p8 내용) |
+| `APPLE_TEAM_ID` | Apple Developer Team ID |
+
+> **참고:** Unity 라이선스, 인증서 관련 Secrets는 **불필요**합니다. 맥북에 이미 설정되어 있기 때문입니다.
+
+#### 워크플로우 호출 예시
+
+```yaml
+name: iOS Build (Self-hosted)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g., 1.0.0)'
+        required: false
+
+jobs:
+  ios:
+    uses: leehyoenjong/Unity-Git-Actions-CI/.github/workflows/ios-testflight-self.yml@main
+    with:
+      unity_path: '/Applications/Unity/Hub/Editor/6000.3.2f1/Unity.app/Contents/MacOS/Unity'
+      bundle_id: 'com.company.app'
+      profile_name: 'MyApp_AppStore_Profile'
+      build_name: 'MyApp'
+      version: ${{ github.event.inputs.version }}
+    secrets:
+      APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+      APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+```
+
+#### Unity 경로 확인 방법
+
+```bash
+# Unity Hub에서 설치된 Unity 경로 확인
+ls /Applications/Unity/Hub/Editor/
+
+# 출력 예시: 6000.3.2f1
+
+# 전체 경로
+/Applications/Unity/Hub/Editor/6000.3.2f1/Unity.app/Contents/MacOS/Unity
+```
+
+---
+
+### GitHub-hosted vs Self-hosted 선택 가이드
+
+| 상황 | 추천 |
+|------|------|
+| 처음 시작하는 경우 | GitHub-hosted |
+| 빌드 비용을 줄이고 싶은 경우 | Self-hosted |
+| 맥북을 항상 켜둘 수 있는 경우 | Self-hosted |
+| 안정성이 중요한 경우 | GitHub-hosted |
+| 둘 다 유연하게 사용하고 싶은 경우 | **둘 다 설정** |
+
+> **팁:** 두 워크플로우를 모두 설정해두면, 맥북이 꺼져 있을 때는 GitHub-hosted로, 켜져 있을 때는 Self-hosted로 빌드할 수 있습니다.
+
+---
+
 ## 라이선스
 
 MIT License

@@ -83,9 +83,9 @@ curl -s https://raw.githubusercontent.com/leehyoenjong/Unity-Git-Actions-CI/main
 ```yaml
 with:
   unity_version: "6000.3.2f1"
-  bundle_id: "com.STUCKPIXEL.NOC"
-  profile_name: "NOC_AppStore_Profile"
-  build_name: "NOC"
+  bundle_id: "com.회사.프로젝트"
+  profile_name: "프로필"
+  build_name: "빌드 이름"
   xcode_version: "16.4"
   version: ${{ github.event.inputs.version }}
 ```

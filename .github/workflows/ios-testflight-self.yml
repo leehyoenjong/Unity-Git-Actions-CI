@@ -58,6 +58,14 @@ jobs:
             echo "version=0.0.1" >> $GITHUB_OUTPUT
           fi
 
+      - name: Debug info
+        run: |
+          echo "Unity path: ${{ inputs.unity_path }}"
+          echo "Project path: ${{ github.workspace }}"
+          echo "Build name: ${{ inputs.build_name }}"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          ls -la "${{ github.workspace }}/Assets/Editor/" || echo "Editor folder not found"
+
       - name: Build Unity iOS
         run: |
           "${{ inputs.unity_path }}" \
@@ -70,7 +78,15 @@ jobs:
             -buildPath "build/iOS" \
             -buildName "${{ inputs.build_name }}" \
             -version "${{ steps.version.outputs.version }}" \
-            -logFile -
+            -logFile /tmp/unity_build.log || true
+          echo "=== Unity Build Log ==="
+          cat /tmp/unity_build.log || echo "No log file found"
+
+      - name: Check build output
+        run: |
+          echo "=== Checking build output ==="
+          ls -la build/iOS/ || echo "build/iOS not found"
+          ls -la build/iOS/${{ inputs.build_name }}/ || echo "build/iOS/${{ inputs.build_name }} not found"
 
       - name: Install CocoaPods
         run: |
